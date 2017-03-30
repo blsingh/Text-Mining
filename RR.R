@@ -514,6 +514,7 @@ library(compiler)
 
                
 setwd("C:/Users/avtarsingh/Downloads/jhu/c10/modtej/fifty/Reduce/hl")
+
     dfm_2 <- readRDS("Bngrams.Rda")
     dfm_3 <- readRDS("Tngrams.Rda")
     dfm_4 <- readRDS("Qngrams.Rda")
@@ -605,88 +606,35 @@ a <- dfm_4 %>% filter(w1 == wx, w2 == wy, w3 == wz) %>% select(w4)
     saveRDS(dfm_2, file = "aph2g.Rda")
        
     
-    #
-#    > identical((Q_gram(rs200[i]))[[1]],character(0))
-#[1] TRUE
     
-    ####
     
-    T_gram <- function(words) {
-            
-            tok <- tokens(removePunctuation(tolower(removeNumbers(replace_contraction(words)))))[[1]]
-            
-            len <- length(tok)
-            wz <- tok[len]
-            wy <- tok[len-1]
-            wx <- tok[len-2]
-            ww <- tok[len-3]
-           
-#a <- dfm_4 %>% filter(w1 == wx, w2 == wy, w3 == wz) %>% select(w4)
- 
-b <- dfm_3 %>% filter(w1 == wy, w2==wz) %>% select(w3)
-
-#c <- dfm_2 %>% filter(w1 == wz)
-
-#d <- dfm_1 %>% filter(w1 == wz)  
-
-#output <- list(a,b,c,d)
-            return(b)
-    }
-######
+    ####  #####     #####       ######
+#   
+#    Shiny App not launching in the web, have to reduce the dfm_4 file
     
-    B_gram <- function(words) {
-            
-            tok <- tokens(removePunctuation(tolower(removeNumbers(replace_contraction(words)))))[[1]]
-            
-            len <- length(tok)
-            wz <- tok[len]
-            wy <- tok[len-1]
-            wx <- tok[len-2]
-            ww <- tok[len-3]
-           
-#a <- dfm_4 %>% filter(w1 == wx, w2 == wy, w3 == wz) %>% select(w4)
- 
-#b <- dfm_3 %>% filter(w1 == wy, w2==wz) %>% select(w3)
-
-c <- dfm_2 %>% filter(w1 == wz) %>% select(w2)
-
-#d <- dfm_1 %>% filter(w1 == wz)  
-
-#output <- list(a,b,c,d)
-            return(c)
-    }
     
-    ########
-    
-    # Test vs Q_gram
-    
-    Q2_gram <- function(words) {
+    ####    ##########################
+    dfm_4 <- readRDS("aph4g.Rda")
+    dfm_4 <- dfm_4 %>% filter(freq>1)
+    dfm_4 <- as.data.table(dfm_4)
+    setwd("./Ngrams")
+    saveRDS(dfm_4, file = "aph4g.Rda")    
   
-    tok <- tokens(removePunctuation(tolower(removeNumbers(replace_contraction(words)))))[[1]]
-            
-            len <- length(tok)
-            wz <- tok[len]
-            wy <- tok[len-1]
-            wx <- tok[len-2]
-            ww <- tok[len-3]
- a <- dfm_4[w1 == wx & w2 == wy & w3 == wz][, w4]          
-#a <- dfm_4 %>% filter(w1 == wx, w2 == wy, w3 == wz) %>% select(w4)
- 
-#b <- dfm_3 %>% filter(w1 == wy, w2==wz)
+                #########################   #######
+        
+        
+########################
+        #########           Shiny app
 
-#c <- dfm_2 %>% filter(w1 == wz)
-
-#d <- dfm_1 %>% filter(w1 == wz)  
-
-#output <- list(a,b,c,d)
-            return(a)
-    }
-##
     
-system.time(Q2_gram("what in the world"))
-system.time(Q_gram("this is getting confusing"))
+                            # server.R
+library(quanteda)
+library(tm)
+library(qdap)
 
-# No advantage detected.
+dfm_4 <- readRDS("aph4g.Rda")
+dfm_3 <- readRDS("aph3g.Rda")
+dfm_2 <- readRDS("aph2g.Rda")
 
 
 #####     predict last word (plw)
@@ -700,23 +648,55 @@ system.time(Q_gram("this is getting confusing"))
             wz <- tok[len]
             wy <- tok[len-1]
             wx <- tok[len-2]
-            
-a <- dfm_4 %>% filter(w1 == wx, w2 == wy, w3 == wz) %>% select(w4) 
-
-b <- dfm_3 %>% filter(w1 == wy, w2 == wz) %>% select(w3)
-
-c <- dfm_2 %>% filter(w1 == wz) %>% select(w2)    
-
-    if(len >=3 & (!identical(a[[1]], character(0)))){
-        return(a)
-    }else if(len >=2 & (!identical(b[[1]], character(0)))){
-        return(b)
-    }else if(len >= 1 & (!identical(c[[1]], character(0)))){
-        return(c)
-    }else{
-        print("No match found")
+       
+    ifelse(len >= 3 & (!identical(dfm_4[w1 == wx & w2 == wy & w3 == wz][, w4], character(0))),
+        return(dfm_4[w1 == wx & w2 == wy & w3 == wz][, w4]),
+        
+        ifelse(len >=2 & (!identical(dfm_3[w1 == wy & w2 == wz][, w3], character(0))),
+               return(dfm_3[w1 == wy & w2 == wz][, w3]),
+               
+               ifelse(len >= 1 & (!identical( dfm_2[w1 == wz][, w2], character(0) )),
+                      return(dfm_2[w1 == wz][, w2]), print("No Match Found"))))
     }
-    }
+
+shinyServer(function(input, output) {
+
+# access the value of the widget with input$text, inputing it into plw, return 'perd'
+    output$plw_out <-renderPrint({
+        perd <-plw(input$text)
+        perd
+    })
+
+})
+
+##############    ui.R ####
+
+
+
+navbarPage(  "Text Prediction",
+  tabPanel("main page",
+           
+           
     
+  # text input here as inpout for 'plw' function
+  textInput("text", label = h4("Enter some words, to calculate the next probable word "), value = ""),
+  helpText("To begin, enter atlease 3 words, and let the first cycle load."),
+           
+ p("4-gram NLP language model will be used to predict the next, If 4-gram does not give a match 3-gram and eventually a 2-gram model will be used."),
+    hr(),
+ p("I have to improve the time that App takes, in returning the first result after that it is running smoothly."),
+  
+  hr(),
+  fluidRow(column(3, verbatimTextOutput("plw_out")))
+      
+)
+  
+  
+,
+ 
+    tabPanel("code",
+           h3('Source code link'),
+           h4( "Text mining details can be found here  ::",h5("https://github.com/blsingh/Text-Mining/blob/master/RR.R")))
 
-   
+  
+ )
