@@ -1,7 +1,7 @@
 # Text-Mining Capstone for Data Science Specialization from John Hopkin via Coursera
-N-grams model with markov assumptions.  A model is trained on the given data after cleaning the coupus, a frequency matrix is created and N-gram model with markov assumptions is used to predict last work in my app. 
+N-grams model with markov assumptions.  A model is trained on the given data after cleaning the corpus, a frequency matrix is created and N-gram model with markov assumptions is used to predict last work in my app. 
 
-All the code for the project is in the [RR.R](https://github.com/blsingh/Text-prediction-Application/blob/master/RR.R) file, below is brief explanation for the fuction that generates the last word in Shiny ap 
+All the code for the project is in the [RR.R](https://github.com/blsingh/Text-prediction-Application/blob/master/RR.R) file, below is brief explanation for the fuction that generates the last word in Shiny app. 
 
 [Here you will find the Shiny app](https://bhael.shinyapps.io/Ngrams/) that runs on the trained model.
 
@@ -14,7 +14,9 @@ All the code for the project is in the [RR.R](https://github.com/blsingh/Text-pr
 plw <- function(words) {
   
     tok <- tokens(removePunctuation(tolower(removeNumbers(replace_contraction(words)))))[[1]]
-            
+
+#strip the given sequence of words to most basic words and use the last 3 words/token
+
             len <- length(tok)
             wz <- tok[len]
             wy <- tok[len-1]
@@ -28,5 +30,7 @@ plw <- function(words) {
                
                ifelse(len >= 1 & (!identical( dfm_2[w1 == wz][, w2], character(0) )),
                       return(dfm_2[w1 == wz][, w2]), print("No Match Found"))))
-    }
+                      
+#choose the final words after matching last 3, 2, or 1 word, if no match return "No Match Found".
+}
 ```
